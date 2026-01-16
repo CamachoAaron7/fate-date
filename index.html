@@ -169,10 +169,10 @@
       border-radius: 14px;
       overflow:hidden;
       background: rgba(0,0,0,.12);
+      max-width: 100%;
     }
     .seg label{
-      flex:1;
-      padding:10px 10px;
+      flex:1 1 0;
       text-align:center;
       font-weight:900;
       font-size:13px;
@@ -190,9 +190,37 @@
     }
     .seg span{
       display:block;
-      padding:10px 10px;
+      padding:10px 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    /* Mobile: stack the segmented control and make fields full-width */
+    @media (max-width: 420px){
+      .field{
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .seg{
+        flex-direction: column;
+      }
+      .seg label{
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,.12);
+      }
+      .seg label:last-child{
+        border-bottom:none;
+      }
+      .seg span{
+        padding:12px 10px;
+        font-size:14px;
+      }
+      select, input[type="range"]{
+        width: 100%;
+        max-width: 100%;
+      }
+    }
     details{
       border:1px solid var(--line);
       background: rgba(0,0,0,.12);
