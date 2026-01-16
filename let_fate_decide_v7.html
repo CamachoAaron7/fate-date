@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Let Fate Decide — Twin Falls Date Game (v7)</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --muted:#9fb0ff;
+      --text:#eef1ff;
+      --accent:#7cf6c8;
+      --accent2:#ffcc66;
+      --danger:#ff6b8a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --line: rgba(255,255,255,.10);
+      --soft: rgba(255,255,255,.05);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(124,246,200,.18), transparent 55%),
+        radial-gradient(1000px 700px at 85% 25%, rgba(255,204,102,.14), transparent 50%),
+        radial-gradient(900px 600px at 50% 95%, rgba(159,176,255,.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+    }
+    .wrap{ width:min(820px, 100%); padding:18px 14px 34px; }
+    header{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    h1{ margin:0; font-size: clamp(22px, 3.2vw, 34px); letter-spacing:.2px; }
+    .sub{ margin-top:6px; color: rgba(238,241,255,.78); font-size: 14px; line-height: 1.35; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center; padding:8px 10px;
+      border:1px solid rgba(255,255,255,.12); border-radius:999px;
+      background: rgba(18,26,51,.6); color: rgba(238,241,255,.8);
+      font-size: 12px; white-space:nowrap;
+    }
+    .grid{ display:grid; gap:12px; }
+    .card{
+      background: rgba(18,26,51,.82);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .card h2{
+      margin:0 0 8px;
+      font-size: 16px;
+      color: rgba(238,241,255,.95);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+    .badge{
+      font-size: 11px; padding:4px 8px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(238,241,255,.75);
+    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button{
+      appearance:none; border:none; border-radius: 14px;
+      padding: 12px 14px; font-weight: 800; font-size: 15px;
+      color:#071018;
+      background: linear-gradient(180deg, rgba(124,246,200,1), rgba(124,246,200,.86));
+      box-shadow: 0 8px 18px rgba(124,246,200,.18);
+      cursor:pointer;
+      flex: 1 1 160px;
+      min-height: 48px;
+    }
+    button.secondary{
+      background: linear-gradient(180deg, rgba(159,176,255,1), rgba(159,176,255,.86));
+      box-shadow: 0 8px 18px rgba(159,176,255,.16);
+      color:#071018;
+    }
+    button.warn{
+      background: linear-gradient(180deg, rgba(255,204,102,1), rgba(255,204,102,.86));
+      box-shadow: 0 8px 18px rgba(255,204,102,.14);
+      color:#071018;
+    }
+    button.danger{
+      background: linear-gradient(180deg, rgba(255,107,138,1), rgba(255,107,138,.86));
+      box-shadow: 0 8px 18px rgba(255,107,138,.14);
+      color:#071018;
+    }
+    button.small{
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; filter:saturate(.75); }
+    .result{
+      margin-top:10px; padding: 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      line-height:1.35;
+    }
+    .big{ font-size: 18px; font-weight: 900; margin-bottom: 4px; }
+    .muted{ color: rgba(238,241,255,.72); font-size: 13px; }
+    .divider{ height:1px; background: var(--line); margin: 12px 0; }
+    .history{ display:grid; gap:10px; }
+    .histItem{
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: var(--soft);
+    }
+    .histTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .histTitle{ font-weight:900; margin-bottom:2px; }
+    .tiny{ font-size: 12px; color: rgba(238,241,255,.72); }
+    .footerNote{ margin-top: 14px; font-size: 12px; color: rgba(238,241,255,.62); line-height:1.45; }
+
+    .toggle, .field{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:10px 12px; border-radius: 14px;
+      border:1px solid var(--line);
+      background: var(--soft);
+    }
+    .toggle label{ font-weight:900; }
+    .toggle input{ transform: scale(1.25); }
+    select, input[type="range"]{
+      width: 220px;
+      max-width: 60vw;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 10px 10px;
+      font-weight: 700;
+      outline: none;
+    }
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .label{
+      font-weight:900;
+    }
+    .help{
+      font-size:12px;
+      color: rgba(238,241,255,.65);
+      line-height:1.35;
+    }
+
+    /* Segmented control */
+    .seg{
+      display:flex;
+      gap:0;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.12);
+    }
+    .seg label{
+      flex:1;
+      padding:10px 10px;
+      text-align:center;
+      font-weight:900;
+      font-size:13px;
+      color: rgba(238,241,255,.8);
+      cursor:pointer;
+      user-select:none;
+      border-right:1px solid rgba(255,255,255,.12);
+    }
+    .seg label:last-child{ border-right:none; }
+    .seg input{ display:none; }
+    .seg input:checked + span{
+      display:block;
+      background: rgba(124,246,200,.22);
+      color: rgba(238,241,255,.98);
+    }
+    .seg span{
+      display:block;
+      padding:10px 10px;
+    }
+
+    details{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+      border-radius: 14px;
+      padding: 8px 10px;
+    }
+    details summary{
+      cursor:pointer;
+      font-weight:900;
+      color: rgba(238,241,255,.9);
+      list-style:none;
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    .filtersGrid{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .confetti{ position: fixed; inset: 0; pointer-events:none; overflow:hidden; z-index: 9999; }
+    .confetti i{
+      position:absolute; width:10px; height:14px; opacity: .95; top:-20px;
+      border-radius: 3px; animation: fall 1200ms linear forwards;
+    }
+    @keyframes fall{ to { transform: translateY(calc(100vh + 40px)) rotate(540deg); opacity:.95; } }
+
+    .counts{
+      margin-top:8px;
+      font-size:12px;
+      color: rgba(238,241,255,.62);
+      line-height:1.4;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(255,255,255,.08);
+      padding:2px 6px;
+      border-radius: 8px;
+      border:1px solid rgba(255,255,255,.10);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>🎲 Let Fate Decide</h1>
+        <div class="sub">
+          v7 — Local Twin Falls + At-Home/Anywhere pools, filters, and no-repeat “decks.”
+          <span class="kbd">Re-roll</span> freely (Commit Mode warns you).
+        </div>
+      </div>
+      <div class="pill" id="statusPill">Status: Ready</div>
+    </header>
+
+    <div class="grid">
+
+      <!-- SETUP -->
+      <div class="card">
+        <h2>
+          ⚙️ Setup
+          <span class="badge" id="poolCountsBadge">Building pools…</span>
+        </h2>
+
+        <div class="field">
+          <div class="left">
+            <div class="label">Global Mode</div>
+            <div class="help">Applies to dinner + activities + dessert unless a section overrides it.</div>
+          </div>
+          <div class="seg" id="globalModeSeg">
+            <label>
+              <input type="radio" name="globalMode" value="local" checked />
+              <span>Local</span>
+            </label>
+            <label>
+              <input type="radio" name="globalMode" value="home" />
+              <span>At-Home</span>
+            </label>
+            <label>
+              <input type="radio" name="globalMode" value="mixed" />
+              <span>Mixed</span>
+            </label>
+          </div>
+        </div>
+
+        <details>
+          <summary>🎛️ Filters (tap to expand)</summary>
+          <div class="filtersGrid">
+
+            <div class="field">
+              <div class="left">
+                <div class="label">Budget</div>
+                <div class="help">Applies to dinner & dessert. Activities mostly ignore budget unless marked.</div>
+              </div>
+              <select id="budgetSel">
+                <option value="any" selected>Any</option>
+                <option value="1">$ (budget)</option>
+                <option value="2">$$ (mid)</option>
+                <option value="3">$$$ (nice)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="left">
+                <div class="label">Indoor / Outdoor</div>
+                <div class="help">Filters activities (and some at-home items).</div>
+              </div>
+              <select id="ioSel">
+                <option value="any" selected>Either</option>
+                <option value="indoor">Indoor</option>
+                <option value="outdoor">Outdoor</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="left">
+                <div class="label">Vibe</div>
+                <div class="help">Chill, Romantic, Playful, Adventurous, Creative.</div>
+              </div>
+              <select id="vibeSel">
+                <option value="any" selected>Any</option>
+                <option value="chill">Chill</option>
+                <option value="romantic">Romantic</option>
+                <option value="playful">Playful</option>
+                <option value="adventurous">Adventurous</option>
+                <option value="creative">Creative</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="left">
+                <div class="label">Max Drive Time (Local)</div>
+                <div class="help">Used only for Local/Mixed local picks.</div>
+              </div>
+              <select id="driveSel">
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="45" selected>45 min</option>
+              </select>
+            </div>
+
+          </div>
+        </details>
+
+        <div class="divider"></div>
+
+        <div class="toggle">
+          <div class="left">
+            <label for="commitMode">Commit Mode</label>
+            <div class="help">If ON, you’ll get “Are you sure?” prompts before re-rolls.</div>
+          </div>
+          <input type="checkbox" id="commitMode" checked />
+        </div>
+
+        <div class="counts" id="countsText"></div>
+      </div>
+
+      <!-- DINNER -->
+      <div class="card">
+        <h2>
+          🍽️ Round 1 — Dinner <span class="badge">Mandatory</span>
+        </h2>
+
+        <div class="field">
+          <div class="left">
+            <div class="label">Dinner Source</div>
+            <div class="help">Override just this section (optional).</div>
+          </div>
+          <select id="dinnerSourceSel">
+            <option value="global" selected>Use Global</option>
+            <option value="local">Local only</option>
+            <option value="home">At-Home only</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="btnDinner">Roll Dinner</button>
+          <button class="secondary" id="btnRerollDinner" disabled>Re-roll Dinner</button>
+          <button class="danger" id="btnReset">Reset Night</button>
+        </div>
+
+        <div class="result" id="dinnerResult">
+          <div class="big">No dinner roll yet.</div>
+          <div class="muted">Tap “Roll Dinner” to let fate choose.</div>
+        </div>
+      </div>
+
+      <!-- ACTIVITIES -->
+      <div class="card">
+        <h2>
+          🎭 Round 2 — Activities <span class="badge">Roll as many as you want</span>
+        </h2>
+
+        <div class="field">
+          <div class="left">
+            <div class="label">Activities Source</div>
+            <div class="help">Override just this section (optional).</div>
+          </div>
+          <select id="activitySourceSel">
+            <option value="global" selected>Use Global</option>
+            <option value="local">Local only</option>
+            <option value="home">At-Home only</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="secondary" id="btnActivity" disabled>Roll an Activity</button>
+          <button class="warn" id="btnDoneActivities" disabled>We’re Done w/ Activities</button>
+          <button class="secondary" id="btnRerollLastActivity" disabled>Re-roll Last Activity</button>
+        </div>
+
+        <div class="result" id="activityResult">
+          <div class="big">Activities locked until dinner is chosen.</div>
+          <div class="muted">Roll dinner first — then roll activities.</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="history" id="activityHistory"></div>
+      </div>
+
+      <!-- DESSERT -->
+      <div class="card">
+        <h2>
+          🍰 Round 3 — Dessert <span class="badge">Optional</span>
+        </h2>
+
+        <div class="field">
+          <div class="left">
+            <div class="label">Dessert Source</div>
+            <div class="help">Override just this section (optional).</div>
+          </div>
+          <select id="dessertSourceSel">
+            <option value="global" selected>Use Global</option>
+            <option value="local">Local only</option>
+            <option value="home">At-Home only</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+
+        <div class="toggle" style="margin-top:10px;">
+          <div class="left">
+            <label for="dessertEnabled">Dessert?</label>
+            <div class="help">You decide. Turn ON to unlock dessert rolling.</div>
+          </div>
+          <input type="checkbox" id="dessertEnabled" />
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="secondary" id="btnDessertRoll" disabled>Roll Dessert</button>
+          <button class="danger" id="btnDessertReset" disabled>Reset Dessert Only</button>
+        </div>
+
+        <div class="result" id="dessertResult">
+          <div class="big">Dessert is locked until you finish activities.</div>
+          <div class="muted">After activities, toggle Dessert ON if you want it.</div>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="card">
+        <h2>🧾 Tonight’s Fate</h2>
+        <div class="result" id="summary">
+          <div class="big">Not started yet.</div>
+          <div class="muted">Roll dinner to begin.</div>
+        </div>
+        <div class="footerNote">
+          Tip: On iPhone Safari, use <span class="kbd">Share → Add to Home Screen</span> for an app-like icon.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+
+  /**********************
+   * DATA MODEL (items)
+   *  id: unique string
+   *  title, note
+   *  source: "local" | "home"
+   *  budget: 1|2|3|0 (0 = not applicable)
+   *  indoor: true|false|null (null = either/unknown)
+   *  vibe: array of strings: chill/romantic/playful/adventurous/creative
+   *  minutes: number|null (local only; drive time estimate)
+   **********************/
+
+  // ---------- Utilities ----------
+  const $ = (id) => document.getElementById(id);
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function confettiBurst(count=26){
+    const wrap = $("confetti");
+    wrap.innerHTML = "";
+    const colors = ["#7cf6c8", "#ffcc66", "#9fb0ff", "#ff6b8a", "#ffffff"];
+    for(let i=0;i<count;i++){
+      const el = document.createElement("i");
+      el.style.left = randInt(0, 100) + "vw";
+      el.style.background = colors[randInt(0, colors.length-1)];
+      el.style.animationDuration = randInt(900, 1500) + "ms";
+      el.style.width = randInt(7, 12) + "px";
+      el.style.height = randInt(10, 18) + "px";
+      el.style.opacity = (Math.random() * 0.35 + 0.6).toFixed(2);
+      wrap.appendChild(el);
+    }
+    setTimeout(() => { wrap.innerHTML = ""; }, 1700);
+  }
+
+  // ---------- Build BIG pools (generated, not hardcoded 300 lines) ----------
+  // Local area towns (within ~45 minutes)
+  const towns = [
+    { name:"Twin Falls", min:10 },
+    { name:"Kimberly", min:15 },
+    { name:"Jerome", min:20 },
+    { name:"Buhl", min:25 },
+    { name:"Filer", min:20 },
+    { name:"Hagerman", min:35 },
+    { name:"Castleford", min:40 },
+    { name:"Shoshone", min:45 },
+    { name:"Eden", min:25 },
+    { name:"Hazelton", min:45 }
+  ];
+
+  const vibes = ["chill","romantic","playful","adventurous","creative"];
+
+  function makeId(prefix, i){ return `${prefix}_${i}`; }
+
+  function tagVibes(...vs){ return [...new Set(vs.flat())]; }
+
+  function localDinnerGenerator(){
+    // 50+ local dinner ideas, “pick a spot” style to stay accurate over time.
+    const cuisines = [
+      { t:"steakhouse", b:3, v:["romantic"] },
+      { t:"Italian", b:2, v:["romantic","chill"] },
+      { t:"Mexican", b:1, v:["playful","chill"] },
+      { t:"Thai", b:2, v:["creative","chill"] },
+      { t:"Indian", b:2, v:["creative","chill"] },
+      { t:"sushi", b:2, v:["romantic","creative"] },
+      { t:"ramen", b:1, v:["playful","chill"] },
+      { t:"burger + fries", b:1, v:["playful"] },
+      { t:"BBQ", b:2, v:["playful","chill"] },
+      { t:"pizza", b:1, v:["playful","chill"] },
+      { t:"tapas / share plates", b:3, v:["romantic","creative"] },
+      { t:"brewery + food", b:2, v:["playful","chill"] },
+      { t:"breakfast-for-dinner", b:1, v:["playful"] },
+      { t:"pho / Vietnamese", b:1, v:["creative","chill"] },
+      { t:"Mediterranean", b:2, v:["chill","creative"] },
+      { t:"comfort food", b:1, v:["chill"] }
+    ];
+
+    const twists = [
+      "Pick the highest-rated place you haven’t tried.",
+      "Order one item each + one to share.",
+      "Ask the server for their favorite dish.",
+      "Try a place you’ve driven past but never stopped at.",
+      "Do a “no phones at the table” dinner.",
+      "Split dessert only if you both agree after the first bite."
+    ];
+
+    const out = [];
+    let idx = 0;
+
+    for(const town of towns){
+      for(const c of cuisines){
+        const title = `${c.t} dinner in/near ${town.name}`;
+        const note = `${twists[idx % twists.length]} (Drive ~${town.min} min).`;
+        out.push({
+          id: makeId("LD", idx++),
+          title,
+          note,
+          source: "local",
+          budget: c.b,
+          indoor: true,
+          vibe: tagVibes(c.v, ["chill"]),
+          minutes: town.min
+        });
+      }
+    }
+
+    // Ensure at least 50
+    return out.slice(0, Math.max(60, out.length)); // typically 160+, but ok
+  }
+
+  function localActivitiesGenerator(){
+    // 50+ local activities (still generic but Twin Falls-area specific)
+    const places = [
+      { t:"Canyon Rim sunset walk", indoor:false, v:["romantic","chill"], min:15 },
+      { t:"Shoshone Falls viewpoint + photos", indoor:false, v:["romantic","creative"], min:20 },
+      { t:"Centennial Waterfront stroll", indoor:false, v:["chill","romantic"], min:15 },
+      { t:"Dierkes Lake easy lap", indoor:false, v:["chill"], min:15 },
+      { t:"Downtown window-shopping + pick a ‘favorite’", indoor:null, v:["creative","chill"], min:10 },
+      { t:"Coffee/tea flight somewhere local", indoor:true, v:["chill","romantic"], min:10 },
+      { t:"Arcade / games night out (or similar)", indoor:true, v:["playful"], min:10 },
+      { t:"Bowling (or any lanes nearby)", indoor:true, v:["playful"], min:15 },
+      { t:"Bookstore browse + choose a book for each other", indoor:true, v:["creative","romantic"], min:10 },
+      { t:"Scenic drive loop (30–45 min) + playlist", indoor:true, v:["romantic","chill"], min:45 },
+      { t:"Mini “photo scavenger hunt” around town", indoor:null, v:["playful","creative"], min:10 },
+      { t:"Look for a local event sign/poster and go", indoor:null, v:["adventurous","playful"], min:10 },
+      { t:"Hagerman area scenic stop", indoor:false, v:["adventurous","romantic"], min:35 },
+      { t:"Buhl area quick exploration", indoor:null, v:["adventurous","creative"], min:25 },
+      { t:"Jerome ‘new spot’ mission", indoor:null, v:["adventurous","playful"], min:20 },
+      { t:"Kimberly quick canyon view / stroll", indoor:false, v:["chill","romantic"], min:15 }
+    ];
+
+    const twists = [
+      "Phones away for 30 minutes.",
+      "Each person picks ONE song for the moment.",
+      "Give each other a 60-second ‘tour guide’ talk about something nearby.",
+      "Take 10 photos: 3 funny, 3 pretty, 4 ‘story’ photos.",
+      "Do a ‘compliment round’ while walking (5 each).",
+      "Flip a coin: left/right at the next 3 turns (safe roads only)."
+    ];
+
+    const out = [];
+    let idx = 0;
+
+    // Expand by combining place + twist + time slot
+    const slots = ["before dinner", "after dinner", "golden hour", "night vibes"];
+    for(const p of places){
+      for(const s of slots){
+        const title = `${p.t} (${s})`;
+        const note = `${twists[idx % twists.length]} (Drive ~${p.min} min).`;
+        out.push({
+          id: makeId("LA", idx++),
+          title,
+          note,
+          source: "local",
+          budget: 0,
+          indoor: p.indoor,
+          vibe: tagVibes(p.v),
+          minutes: p.min
+        });
+      }
+    }
+
+    // Add “town mini-missions” to grow variety
+    const missions = [
+      "find the best sunset spot",
+      "find the coziest café vibe",
+      "find the funniest sign",
+      "find a new dessert place to try next time",
+      "find a quiet overlook",
+      "find a ‘hidden gem’ shop"
+    ];
+    for(const town of towns){
+      for(const m of missions){
+        out.push({
+          id: makeId("LA", idx++),
+          title: `Mini-mission in/near ${town.name}: ${m}`,
+          note: `Set a 45-minute timer and explore. (Drive ~${town.min} min).`,
+          source: "local",
+          budget: 0,
+          indoor: null,
+          vibe: tagVibes(["adventurous","creative","playful"]),
+          minutes: town.min
+        });
+      }
+    }
+
+    return out; // well over 50
+  }
+
+  function localDessertGenerator(){
+    // 50+ local dessert ideas (again: “pick a place” style)
+    const dessertTypes = [
+      { t:"ice cream / shakes", b:1, v:["playful","chill"] },
+      { t:"bakery treat", b:1, v:["romantic","chill"] },
+      { t:"coffee + shared dessert", b:1, v:["romantic","chill"] },
+      { t:"boba / sweet drink", b:1, v:["playful","creative"] },
+      { t:"cookies / warm dessert", b:1, v:["chill"] },
+      { t:"sit-down dessert date", b:2, v:["romantic"] },
+      { t:"dessert at your dinner spot", b:2, v:["romantic","chill"] },
+      { t:"late-night drive-thru treat", b:1, v:["playful"] },
+      { t:"mocktail + sweet bite", b:2, v:["creative","romantic"] },
+      { t:"share a ‘mystery’ dessert you’ve never had", b:2, v:["adventurous","creative"] }
+    ];
+
+    const twists = [
+      "Only rule: you must share.",
+      "Pick the first place that makes you both say ‘oooh.’",
+      "One person chooses the place, the other chooses the dessert.",
+      "Try something you’ve never ordered before.",
+      "Rate it 1–10 and explain the score."
+    ];
+
+    const out = [];
+    let idx = 0;
+
+    for(const town of towns){
+      for(const d of dessertTypes){
+        out.push({
+          id: makeId("LDe", idx++),
+          title: `${d.t} in/near ${town.name}`,
+          note: `${twists[idx % twists.length]} (Drive ~${town.min} min).`,
+          source:"local",
+          budget: d.b,
+          indoor: true,
+          vibe: tagVibes(d.v),
+          minutes: town.min
+        });
+      }
+    }
+    return out; // 100+ typically
+  }
+
+  // --- At-Home / Anywhere generators (100+ each) ---
+  function homeDinnerGenerator(){
+    const bases = [
+      { t:"Taco night", b:1, v:["playful","chill"] },
+      { t:"Homemade pizza night", b:1, v:["playful","creative"] },
+      { t:"Pasta + garlic bread", b:1, v:["romantic","chill"] },
+      { t:"Breakfast-for-dinner", b:1, v:["playful"] },
+      { t:"Charcuterie board dinner", b:2, v:["romantic","creative"] },
+      { t:"Grilled cheese + fancy soup", b:1, v:["chill"] },
+      { t:"Sushi bowl night", b:2, v:["creative"] },
+      { t:"Stir-fry night", b:1, v:["creative","chill"] },
+      { t:"Burgers + fries at home", b:1, v:["playful"] },
+      { t:"Build-your-own wraps", b:1, v:["playful"] },
+      { t:"Mediterranean mezze", b:2, v:["creative","romantic"] },
+      { t:"DIY ramen night", b:1, v:["creative","playful"] },
+      { t:"Crockpot comfort meal", b:1, v:["chill"] },
+      { t:"Fancy ‘plated’ dinner at home", b:3, v:["romantic","creative"] },
+      { t:"Grocery store ‘2-aisle’ challenge dinner", b:1, v:["playful","adventurous"] }
+    ];
+
+    const twists = [
+      "One cooks, one plays DJ.",
+      "Cook together: you each own half the recipe.",
+      "Light a candle and pretend it’s a restaurant.",
+      "Pick one ‘weird’ ingredient and make it work.",
+      "No phones until dishes are done.",
+      "Dress up a little (for fun).",
+      "Eat picnic-style on the floor with pillows."
+    ];
+
+    const out = [];
+    let idx = 0;
+
+    // Combine base + twist + “theme”
+    const themes = [
+      "movie night pairing", "date-night plating", "budget challenge",
+      "comfort vibes", "spicy experiment", "new recipe", "old favorite"
+    ];
+
+    for(const base of bases){
+      for(const theme of themes){
+        out.push({
+          id: makeId("HD", idx++),
+          title: `${base.t} (${theme})`,
+          note: twists[idx % twists.length],
+          source:"home",
+          budget: base.b,
+          indoor: true,
+          vibe: tagVibes(base.v),
+          minutes: null
+        });
+      }
+    }
+
+    // Ensure 100+
+    return out.slice(0, 120);
+  }
+
+  function homeActivitiesGenerator(){
+    const actions = [
+      "play a 2-player game",
+      "do a “question deck” talk",
+      "make a shared playlist",
+      "do a snack taste test",
+      "watch a comfort movie",
+      "start a puzzle",
+      "do a mini photo shoot",
+      "cook something together",
+      "paint/doodle together",
+      "try a couples yoga stretch",
+      "do a thrift-store style ‘fashion show’ with what you own",
+      "build a blanket fort",
+      "do a “memory lane” slideshow",
+      "learn a dance from YouTube",
+      "plan a future trip just for fun"
+    ];
+
+    const twists = [
+      "Winner picks the next activity.",
+      "Set a 20-minute timer (keep it light).",
+      "Phones on airplane mode.",
+      "Each person must make the other laugh once.",
+      "Do it “silently” for 5 minutes (then talk).",
+      "Add a tiny prize (candy, back rub, etc.).",
+      "Document with 3 photos only."
+    ];
+
+    const prompts = [
+      "Tell me a story I’ve never heard.",
+      "What’s something you want to learn this year?",
+      "What’s your favorite ‘small joy’ lately?",
+      "What would a perfect Saturday look like?",
+      "What’s one thing you’re proud of from this month?",
+      "What’s a place you want to see together?",
+      "What’s your ‘dream date’ if money didn’t matter?"
+    ];
+
+    const out = [];
+    let idx = 0;
+
+    // Make 150+ unique by combining action + twist + prompt/variant
+    for(const a of actions){
+      for(const t of twists){
+        out.push({
+          id: makeId("HA", idx++),
+          title: `${a}`,
+          note: t,
+          source:"home",
+          budget: 0,
+          indoor: true,
+          vibe: tagVibes(["chill","romantic","playful","creative"]),
+          minutes: null
+        });
+      }
+    }
+
+    // Add “outdoor anywhere” micro-activities too (still non-location specific)
+    const outdoorAnywhere = [
+      "go for a neighborhood walk",
+      "stargaze for 10 minutes",
+      "do a sunset drive (short)",
+      "sit outside with a drink and talk",
+      "go on a ‘photo scavenger hunt’",
+      "find a park bench and people-watch (nicely)",
+      "take a ‘three-turn’ random walk then return"
+    ];
+    for(const oa of outdoorAnywhere){
+      for(const p of prompts){
+        out.push({
+          id: makeId("HA", idx++),
+          title: `${oa}`,
+          note: `Conversation prompt: “${p}”`,
+          source:"home",
+          budget: 0,
+          indoor: false,
+          vibe: tagVibes(["chill","romantic","creative"]),
+          minutes: null
+        });
+      }
+    }
+
+    return out.slice(0, 180);
+  }
+
+  function homeDessertGenerator(){
+    const desserts = [
+      { t:"ice cream at home (add toppings)", b:1, v:["playful"] },
+      { t:"brownies or cookies", b:1, v:["chill"] },
+      { t:"hot cocoa bar", b:1, v:["romantic","chill"] },
+      { t:"fruit + chocolate", b:1, v:["romantic"] },
+      { t:"root beer floats", b:1, v:["playful"] },
+      { t:"make a mug cake", b:1, v:["playful","creative"] },
+      { t:"mini cheesecake cups", b:2, v:["creative","romantic"] },
+      { t:"taste-test 5 candies", b:1, v:["playful"] },
+      { t:"dessert charcuterie board", b:2, v:["creative","romantic"] },
+      { t:"try a new dessert recipe", b:2, v:["creative"] },
+      { t:"late-night ‘mystery snack’ challenge", b:1, v:["adventurous","playful"] },
+      { t:"coffee/tea + something sweet", b:1, v:["romantic","chill"] }
+    ];
+
+    const twists = [
+      "Rate it 1–10 and explain why.",
+      "Each person picks 1 ingredient to add.",
+      "Eat it while sharing a ‘best moment of today.’",
+      "Watch one short funny video while you eat (then phones away).",
+      "Try it blindfolded (safely).",
+      "Make it look fancy on a plate."
+    ];
+
+    const out = [];
+    let idx = 0;
+    const moods = ["cozy", "fancy-ish", "silly", "nostalgic", "new-to-us", "comfort"];
+
+    for(const d of desserts){
+      for(const m of moods){
+        out.push({
+          id: makeId("HDe", idx++),
+          title: `${d.t} (${m})`,
+          note: twists[idx % twists.length],
+          source:"home",
+          budget: d.b,
+          indoor: true,
+          vibe: tagVibes(d.v, ["chill"]),
+          minutes: null
+        });
+      }
+    }
+
+    return out.slice(0, 120);
+  }
+
+  // Build pools
+  const DINNER_ALL = [...localDinnerGenerator(), ...homeDinnerGenerator()];
+  const ACTIVITY_ALL = [...localActivitiesGenerator(), ...homeActivitiesGenerator()];
+  const DESSERT_ALL = [...localDessertGenerator(), ...homeDessertGenerator()];
+
+  // Sanity counts display (ensures minimums)
+  function countBySource(arr, src){ return arr.filter(x => x.source === src).length; }
+
+  // ---------- UI elements ----------
+  const statusPill = $("statusPill");
+  const poolCountsBadge = $("poolCountsBadge");
+  const countsText = $("countsText");
+
+  const budgetSel = $("budgetSel");
+  const ioSel = $("ioSel");
+  const vibeSel = $("vibeSel");
+  const driveSel = $("driveSel");
+
+  const dinnerSourceSel = $("dinnerSourceSel");
+  const activitySourceSel = $("activitySourceSel");
+  const dessertSourceSel = $("dessertSourceSel");
+
+  const commitMode = $("commitMode");
+
+  const btnDinner = $("btnDinner");
+  const btnRerollDinner = $("btnRerollDinner");
+  const btnReset = $("btnReset");
+
+  const btnActivity = $("btnActivity");
+  const btnDoneActivities = $("btnDoneActivities");
+  const btnRerollLastActivity = $("btnRerollLastActivity");
+  const activityHistory = $("activityHistory");
+
+  const dessertEnabled = $("dessertEnabled");
+  const btnDessertRoll = $("btnDessertRoll");
+  const btnDessertReset = $("btnDessertReset");
+
+  const dinnerResult = $("dinnerResult");
+  const activityResult = $("activityResult");
+  const dessertResult = $("dessertResult");
+  const summary = $("summary");
+
+  function setStatus(text){ statusPill.textContent = "Status: " + text; }
+
+  function confirmIfCommit(msg){
+    if(!commitMode.checked) return true;
+    return confirm(msg);
+  }
+
+  function getGlobalMode(){
+    const v = document.querySelector('input[name="globalMode"]:checked')?.value || "local";
+    return v; // local|home|mixed
+  }
+
+  function resolveMode(sectionOverride){
+    const g = getGlobalMode();
+    if(sectionOverride === "global") return g;
+    return sectionOverride; // local|home|mixed
+  }
+
+  function getFilters(){
+    return {
+      budget: budgetSel.value,        // any | 1 | 2 | 3
+      io: ioSel.value,               // any | indoor | outdoor
+      vibe: vibeSel.value,           // any | chill | romantic | playful | adventurous | creative
+      maxDrive: Number(driveSel.value) // 15/30/45
+    };
+  }
+
+  function matchesFilters(item, section, filters){
+    // Source handled elsewhere.
+    // Budget applies to dinner/dessert if item.budget != 0.
+    if((section === "dinner" || section === "dessert") && filters.budget !== "any"){
+      const b = Number(filters.budget);
+      // if item has a budget value, require <= chosen budget level (so $ filter won't show $$$)
+      if(item.budget && item.budget > b) return false;
+    }
+
+    // Indoor/Outdoor mainly for activities; but we allow it to filter any item that has indoor specified.
+    if(filters.io !== "any" && item.indoor !== null){
+      const wantIndoor = (filters.io === "indoor");
+      if(item.indoor !== wantIndoor) return false;
+    }
+
+    // Vibe filter applies if item has vibes
+    if(filters.vibe !== "any"){
+      if(!item.vibe || !item.vibe.includes(filters.vibe)) return false;
+    }
+
+    // Drive-time filter for local items only
+    if(item.source === "local" && typeof item.minutes === "number"){
+      if(item.minutes > filters.maxDrive) return false;
+    }
+
+    return true;
+  }
+
+  function eligibleIdsForSection(section){
+    const filters = getFilters();
+    const mode = resolveMode(
+      section === "dinner" ? dinnerSourceSel.value :
+      section === "activity" ? activitySourceSel.value :
+      dessertSourceSel.value
+    );
+
+    const all = section === "dinner" ? DINNER_ALL :
+                section === "activity" ? ACTIVITY_ALL :
+                DESSERT_ALL;
+
+    const allowLocal = (mode === "local" || mode === "mixed");
+    const allowHome  = (mode === "home"  || mode === "mixed");
+
+    const eligible = all.filter(item => {
+      if(item.source === "local" && !allowLocal) return false;
+      if(item.source === "home" && !allowHome) return false;
+      return matchesFilters(item, section, filters);
+    });
+
+    return eligible.map(x => x.id);
+  }
+
+  // ---------- No-repeat bag manager per "section + mode + filters" ----------
+  // Keyed by: section|mode|budget|io|vibe|maxDrive
+  const bagState = new Map(); // key -> array of remaining ids
+
+  function bagKey(section){
+    const filters = getFilters();
+    const mode = resolveMode(
+      section === "dinner" ? dinnerSourceSel.value :
+      section === "activity" ? activitySourceSel.value :
+      dessertSourceSel.value
+    );
+    return [
+      section, mode,
+      filters.budget, filters.io, filters.vibe, String(filters.maxDrive)
+    ].join("|");
+  }
+
+  function resetBagFor(section){
+    bagState.delete(bagKey(section));
+  }
+
+  function drawFromBag(section, avoidId=null){
+    const key = bagKey(section);
+    const eligible = eligibleIdsForSection(section);
+
+    if(eligible.length === 0) return null;
+
+    // Get bag or initialize it with eligible ids shuffled
+    let bag = bagState.get(key);
+    const eligibleSet = new Set(eligible);
+
+    const bagInvalid =
+      !bag ||
+      bag.length === 0 ||
+      bag.some(id => !eligibleSet.has(id)) ||
+      eligible.some(id => !bag.includes(id)) === false; // overly strict? keep simpler below
+
+    // Simpler: if no bag or bag has ids not in eligible -> rebuild.
+    if(!bag || bag.some(id => !eligibleSet.has(id))){
+      bag = shuffle([...eligible]);
+      bagState.set(key, bag);
+    }
+
+    // Draw until not avoidId (if possible)
+    let tries = 0;
+    while(tries < 8){
+      if(bag.length === 0){
+        bag = shuffle([...eligible]);
+        bagState.set(key, bag);
+      }
+      const next = bag.pop();
+      if(next !== avoidId || eligible.length === 1){
+        return next;
+      }
+      // put avoided id back at start (so it can appear later after exhausting)
+      bag.unshift(next);
+      tries++;
+    }
+
+    // Fallback
+    return eligible.find(id => id !== avoidId) || eligible[0];
+  }
+
+  function findItemById(section, id){
+    const all = section === "dinner" ? DINNER_ALL :
+                section === "activity" ? ACTIVITY_ALL :
+                DESSERT_ALL;
+    return all.find(x => x.id === id) || null;
+  }
+
+  // ---------- State ----------
+  const state = {
+    dinnerId: null,
+    activities: [], // array of { id }
+    activitiesDone: false,
+    dessertEnabled: false,
+    dessertId: null
+  };
+
+  // ---------- Render ----------
+  function updateCountsUI(){
+    const localDinner = countBySource(DINNER_ALL, "local");
+    const homeDinner  = countBySource(DINNER_ALL, "home");
+    const localAct    = countBySource(ACTIVITY_ALL, "local");
+    const homeAct     = countBySource(ACTIVITY_ALL, "home");
+    const localDes    = countBySource(DESSERT_ALL, "local");
+    const homeDes     = countBySource(DESSERT_ALL, "home");
+
+    poolCountsBadge.textContent = `Pools: Dinner ${localDinner}+local / ${homeDinner}+home • Activities ${localAct}+local / ${homeAct}+home • Dessert ${localDes}+local / ${homeDes}+home`;
+
+    countsText.innerHTML =
+      `Local options: Dinner <b>${localDinner}</b>, Activities <b>${localAct}</b>, Dessert <b>${localDes}</b><br>` +
+      `At-Home/Anywhere options: Dinner <b>${homeDinner}</b>, Activities <b>${homeAct}</b>, Dessert <b>${homeDes}</b>`;
+  }
+
+  function render(){
+    // Dinner card
+    if(!state.dinnerId){
+      dinnerResult.innerHTML = `
+        <div class="big">No dinner roll yet.</div>
+        <div class="muted">Tap “Roll Dinner” to begin.</div>
+      `;
+      btnRerollDinner.disabled = true;
+
+      btnActivity.disabled = true;
+      btnDoneActivities.disabled = true;
+      btnRerollLastActivity.disabled = true;
+
+      dessertEnabled.disabled = true;
+      btnDessertRoll.disabled = true;
+      btnDessertReset.disabled = true;
+
+      setStatus("Ready");
+    } else {
+      const d = findItemById("dinner", state.dinnerId);
+      dinnerResult.innerHTML = `
+        <div class="big">🍽️ ${d?.title || "Dinner"}</div>
+        <div class="muted">${d?.note || ""}</div>
+      `;
+      btnRerollDinner.disabled = false;
+
+      btnActivity.disabled = false;
+      btnDoneActivities.disabled = false;
+      btnRerollLastActivity.disabled = (state.activities.length === 0);
+
+      setStatus(state.activitiesDone ? "Activities complete" : "Dinner chosen");
+    }
+
+    // Activities
+    if(!state.dinnerId){
+      activityResult.innerHTML = `
+        <div class="big">Activities locked until dinner is chosen.</div>
+        <div class="muted">Roll dinner first — then roll activities.</div>
+      `;
+      activityHistory.innerHTML = "";
+    } else {
+      if(state.activities.length === 0){
+        activityResult.innerHTML = `
+          <div class="big">No activities yet.</div>
+          <div class="muted">Tap “Roll an Activity” to add one. Do as many as you want.</div>
+        `;
+      } else {
+        const last = findItemById("activity", state.activities[state.activities.length - 1].id);
+        activityResult.innerHTML = `
+          <div class="big">🎭 ${last?.title || "Activity"}</div>
+          <div class="muted">${last?.note || ""}</div>
+        `;
+      }
+
+      activityHistory.innerHTML = state.activities.map((a, idx) => {
+        const item = findItemById("activity", a.id);
+        return `
+          <div class="histItem">
+            <div class="histTop">
+              <div>
+                <div class="histTitle">${idx+1}. ${item?.title || "Activity"}</div>
+                <div class="tiny">${item?.note || ""}</div>
+              </div>
+              <button class="secondary small" data-reroll-idx="${idx}">Re-roll this</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      activityHistory.querySelectorAll("button[data-reroll-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.getAttribute("data-reroll-idx"));
+          rerollActivityAt(idx);
+        });
+      });
+    }
+
+    // Dessert
+    if(!state.dinnerId || !state.activitiesDone){
+      dessertResult.innerHTML = `
+        <div class="big">Dessert is locked until you finish activities.</div>
+        <div class="muted">Tap “We’re Done w/ Activities” first.</div>
+      `;
+      dessertEnabled.disabled = true;
+      btnDessertRoll.disabled = true;
+      btnDessertReset.disabled = true;
+    } else {
+      dessertEnabled.disabled = false;
+      dessertEnabled.checked = state.dessertEnabled;
+
+      if(!state.dessertEnabled){
+        dessertResult.innerHTML = `
+          <div class="big">Dessert is OFF.</div>
+          <div class="muted">Toggle ON if you want dessert, then roll.</div>
+        `;
+        btnDessertRoll.disabled = true;
+        btnDessertReset.disabled = true;
+      } else {
+        btnDessertRoll.disabled = false;
+        btnDessertReset.disabled = (state.dessertId === null);
+
+        if(!state.dessertId){
+          dessertResult.innerHTML = `
+            <div class="big">Dessert is ON 🍰</div>
+            <div class="muted">Tap “Roll Dessert” to choose your sweet ending.</div>
+          `;
+        } else {
+          const des = findItemById("dessert", state.dessertId);
+          dessertResult.innerHTML = `
+            <div class="big">🍰 ${des?.title || "Dessert"}</div>
+            <div class="muted">${des?.note || ""}</div>
+          `;
+        }
+      }
+    }
+
+    // Summary
+    if(!state.dinnerId){
+      summary.innerHTML = `
+        <div class="big">Not started yet.</div>
+        <div class="muted">Roll dinner to begin.</div>
+      `;
+    } else {
+      const d = findItemById("dinner", state.dinnerId);
+      const acts = state.activities.length
+        ? state.activities.map((a,i)=> {
+            const it = findItemById("activity", a.id);
+            return `${i+1}. ${it?.title || "Activity"}`;
+          }).join("<br>")
+        : "<span class='muted'>No activities rolled (yet).</span>";
+
+      let dessertLine = "Dessert: <span class='muted'>Not decided.</span>";
+      if(state.activitiesDone && !state.dessertEnabled) dessertLine = "Dessert: No dessert (you chose OFF).";
+      if(state.dessertEnabled && !state.dessertId) dessertLine = "Dessert: ON (not rolled yet).";
+      if(state.dessertId){
+        const des = findItemById("dessert", state.dessertId);
+        dessertLine = `Dessert: ${des?.title || "Dessert"}`;
+      }
+
+      summary.innerHTML = `
+        <div class="big">Tonight’s plan:</div>
+        <div class="muted"><b>Dinner:</b> ${d?.title || ""}</div>
+        <div class="divider"></div>
+        <div class="muted"><b>Activities:</b><br>${acts}</div>
+        <div class="divider"></div>
+        <div class="muted"><b>${dessertLine}</b></div>
+      `;
+    }
+  }
+
+  // ---------- Actions ----------
+  function rollDinner(isReroll=false){
+    if(state.dinnerId && !isReroll && commitMode.checked){
+      setStatus("Nice try 😄");
+      confettiBurst(12);
+      alert("Commit Mode is ON 😄\nDinner is already chosen.\nUse “Re-roll Dinner” if you want to change it.");
+      return;
+    }
+    if(isReroll && state.dinnerId){
+      const ok = confirmIfCommit("Dinner is already chosen.\nRe-roll dinner anyway?");
+      if(!ok) return;
+    }
+
+    const nextId = drawFromBag("dinner", state.dinnerId);
+    if(!nextId){
+      alert("No dinner options match your filters. Try loosening filters (Budget/Vibe/Drive).");
+      return;
+    }
+    state.dinnerId = nextId;
+    confettiBurst(26);
+    render();
+  }
+
+  function rollActivity(){
+    if(!state.dinnerId) return;
+    if(state.activitiesDone){
+      alert("Activities are marked done.\nYou can still re-roll any activity using the buttons.");
+      return;
+    }
+    const avoid = state.activities.map(x => x.id); // avoid duplicates in current list if possible
+    let nextId = drawFromBag("activity", avoid[avoid.length-1] || null);
+
+    // If drawFromBag returns something already used in current list and there are other eligible items,
+    // try a few times to avoid duplicates in the list.
+    const eligible = eligibleIdsForSection("activity");
+    if(eligible.length > 1){
+      let tries = 0;
+      while(avoid.includes(nextId) && tries < 10){
+        resetBagFor("activity"); // fresh shuffle among eligible
+        nextId = drawFromBag("activity", null);
+        tries++;
+      }
+    }
+
+    if(!nextId){
+      alert("No activity options match your filters. Try loosening Indoor/Outdoor or Vibe.");
+      return;
+    }
+
+    state.activities.push({ id: nextId });
+    confettiBurst(18);
+    render();
+  }
+
+  function rerollActivityAt(idx){
+    if(idx < 0 || idx >= state.activities.length) return;
+    const currentId = state.activities[idx].id;
+    const currentItem = findItemById("activity", currentId);
+    const ok = confirmIfCommit(`Re-roll activity #${idx+1}?\n(Current: ${currentItem?.title || "Activity"})`);
+    if(!ok) return;
+
+    const nextId = drawFromBag("activity", currentId);
+    if(!nextId){
+      alert("No activity options match your filters. Try loosening filters.");
+      return;
+    }
+
+    // prevent picking an activity already in the list, if possible
+    const inUse = new Set(state.activities.map(a => a.id));
+    if(inUse.has(nextId)){
+      const eligible = eligibleIdsForSection("activity").filter(id => !inUse.has(id) || id === currentId);
+      if(eligible.length > 0){
+        // pick from eligible-not-inUse
+        resetBagFor("activity");
+        const forced = shuffle([...eligible])[0];
+        state.activities[idx].id = forced === currentId ? nextId : forced;
+      } else {
+        state.activities[idx].id = nextId;
+      }
+    } else {
+      state.activities[idx].id = nextId;
+    }
+
+    confettiBurst(18);
+    render();
+  }
+
+  function rerollLastActivity(){
+    if(state.activities.length === 0) return;
+    rerollActivityAt(state.activities.length - 1);
+  }
+
+  function finishActivities(){
+    if(!state.dinnerId) return;
+    state.activitiesDone = true;
+    setStatus("Dessert?");
+    confettiBurst(14);
+    render();
+  }
+
+  function rollDessert(){
+    if(!state.activitiesDone || !state.dessertEnabled) return;
+
+    if(state.dessertId){
+      const ok = confirmIfCommit("Dessert is already chosen.\nRe-roll anyway?");
+      if(!ok) return;
+    }
+
+    const nextId = drawFromBag("dessert", state.dessertId);
+    if(!nextId){
+      alert("No dessert options match your filters. Try loosening Budget or Vibe.");
+      return;
+    }
+    state.dessertId = nextId;
+    confettiBurst(26);
+    render();
+  }
+
+  function resetDessertOnly(){
+    if(!state.activitiesDone || !state.dessertEnabled) return;
+    if(!state.dessertId) return;
+    const ok = confirmIfCommit("Reset dessert?\n(This clears the dessert choice only.)");
+    if(!ok) return;
+    state.dessertId = null;
+    confettiBurst(14);
+    render();
+  }
+
+  function resetNight(){
+    const ok = confirm("Reset the whole night?\nThis clears dinner, activities, and dessert.");
+    if(!ok) return;
+
+    state.dinnerId = null;
+    state.activities = [];
+    state.activitiesDone = false;
+    state.dessertEnabled = false;
+    state.dessertId = null;
+    dessertEnabled.checked = false;
+
+    bagState.clear();
+    setStatus("Ready");
+    render();
+  }
+
+  // ---------- Event wiring ----------
+  btnDinner.addEventListener("click", () => rollDinner(false));
+  btnRerollDinner.addEventListener("click", () => rollDinner(true));
+  btnActivity.addEventListener("click", rollActivity);
+  btnDoneActivities.addEventListener("click", finishActivities);
+  btnRerollLastActivity.addEventListener("click", rerollLastActivity);
+  btnDessertRoll.addEventListener("click", rollDessert);
+  btnDessertReset.addEventListener("click", resetDessertOnly);
+  btnReset.addEventListener("click", resetNight);
+
+  dessertEnabled.addEventListener("change", () => {
+    if(!state.activitiesDone){
+      dessertEnabled.checked = false;
+      return;
+    }
+    state.dessertEnabled = dessertEnabled.checked;
+    if(!state.dessertEnabled){
+      state.dessertId = null;
+    }
+    render();
+  });
+
+  // Any time filters or mode change: reset bags (so no-repeat logic matches new eligible pool)
+  const resetBagsAndRender = () => { bagState.clear(); render(); };
+
+  document.querySelectorAll('input[name="globalMode"]').forEach(r => r.addEventListener("change", resetBagsAndRender));
+  [budgetSel, ioSel, vibeSel, driveSel, dinnerSourceSel, activitySourceSel, dessertSourceSel].forEach(el => {
+    el.addEventListener("change", resetBagsAndRender);
+  });
+
+  // ---------- Init ----------
+  updateCountsUI();
+
+  // enforce your requested minimums (sanity checks)
+  const localDinner = DINNER_ALL.filter(x=>x.source==="local").length;
+  const localAct = ACTIVITY_ALL.filter(x=>x.source==="local").length;
+  const localDes = DESSERT_ALL.filter(x=>x.source==="local").length;
+  const homeDinner = DINNER_ALL.filter(x=>x.source==="home").length;
+  const homeAct = ACTIVITY_ALL.filter(x=>x.source==="home").length;
+  const homeDes = DESSERT_ALL.filter(x=>x.source==="home").length;
+
+  const okMinimums =
+    localDinner >= 50 && localAct >= 50 && localDes >= 50 &&
+    homeDinner >= 100 && homeAct >= 100 && homeDes >= 100;
+
+  poolCountsBadge.textContent = okMinimums ? "Pools ready ✅" : "Pools built (check counts)";
+  render();
+});
+</script>
+</body>
+</html>
